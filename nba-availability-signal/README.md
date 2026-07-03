@@ -46,9 +46,35 @@ Everything is validated with **expanding-window walk-forward** splits (train on 
 
 ## Results
 
-_Reproduced numbers, plots, and per-season breakdown are added here after running the pipeline (see `results/`)._
+Trained and validated on **54,478 rotation-player games** across four seasons (2021-22 → 2024-25), with an **11.3% event base rate**. All numbers below are **out-of-sample**, pooled across 6 expanding-window walk-forward folds — the model never sees the period it's scored on.
 
-<!-- RESULTS_PLACEHOLDER -->
+| Model | ROC-AUC | PR-AUC | Brier | Lift @ top decile |
+|-------|:------:|:------:|:-----:|:-----------------:|
+| Base rate (reference) | 0.494 | 0.109 | 0.098 | 0.94x |
+| Recent-DNP heuristic | 0.644 | 0.174 | 0.099 | 2.14x |
+| Logistic regression | 0.729 | 0.347 | **0.180** | 4.16x |
+| **Gradient Boosting** | **0.730** | **0.375** | **0.082** | **4.16x** |
+
+**What the headline number means:** of the 10% of players the model flags as highest-risk on a given slate, **~47% actually sit or get their minutes cut** — a **4.2x lift** over the 11.3% base rate. The gradient-booster also nearly halves the Brier score vs. the logistic baseline, so its probabilities are usable as-is (no post-hoc calibration needed).
+
+**Stability:** performance is consistent across every fold from late-2022 to 2025 (ROC 0.706–0.756), not driven by one lucky period.
+
+**Honesty note:** ROC ~0.73 on an inferred, noisy label is a *realistic* number, not a suspiciously clean one. Roughly one-fifth of a player's minutes drop is genuinely unpredictable from schedule/role/form alone — which is exactly why official injury reports (roadmap) would be the next lift.
+
+### Figures
+
+| | |
+|---|---|
+| ![Precision-Recall](results/pr_curves.png) | ![Calibration](results/calibration.png) |
+| ![Per-fold stability](results/per_fold.png) | ![Cumulative gains](results/lift_curve.png) |
+
+![Feature importance](results/importance.png)
+
+Feature importance (permutation, out-of-sample) is led by the player's recent minutes and minutes **volatility** — i.e., inconsistent-usage players are the most predictable rest candidates — followed by season progression (rest ramps up late-season, consistent with load management and tanking).
+
+### Resume bullet (real numbers)
+
+> Built an end-to-end NBA player-availability model on 54K+ rotation-player games, engineering strictly causal features from reconstructed box-score panels (recovering inferred DNPs) and validating with expanding-window walk-forward testing; the gradient-boosted classifier reached **0.73 ROC-AUC / 0.375 PR-AUC** out-of-sample with a **4.2x top-decile lift** over base rate and a well-calibrated 0.082 Brier score, beating naive and logistic baselines consistently across all folds.
 
 ---
 

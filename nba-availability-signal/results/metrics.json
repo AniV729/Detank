@@ -1,0 +1,56 @@
+{
+  "seasons": [
+    "2021-22",
+    "2022-23",
+    "2023-24",
+    "2024-25"
+  ],
+  "n_model_rows": 54478,
+  "overall_base_rate": 0.11303645508278572,
+  "pooled_metrics": {
+    "base_rate": {
+      "roc_auc": 0.4942654172249963,
+      "pr_auc": 0.10896507989852128,
+      "brier": 0.09815013191256333,
+      "lift_top10": 0.9413393565864986,
+      "base_rate": 0.11023544960595233
+    },
+    "recent_dnp_rate": {
+      "roc_auc": 0.6443290711936532,
+      "pr_auc": 0.174118849607332,
+      "brier": 0.09853467899398172,
+      "lift_top10": 2.1379948122471655,
+      "base_rate": 0.11023544960595233
+    },
+    "logreg": {
+      "roc_auc": 0.7288234607082067,
+      "pr_auc": 0.34741125271560297,
+      "brier": 0.17974107338990117,
+      "lift_top10": 4.158322204921018,
+      "base_rate": 0.11023544960595233
+    },
+    "gbm": {
+      "roc_auc": 0.7302145545367924,
+      "pr_auc": 0.37487563248831596,
+      "brier": 0.08181478564005132,
+      "lift_top10": 4.164982624896866,
+      "base_rate": 0.11023544960595233
+    }
+  },
+  "importance": {
+    "prev_min": 0.1974,
+    "trailing_min_5": 0.0333,
+    "min_std_10": 0.0268,
+    "team_game_num": 0.0194,
+    "trailing_min_10": 0.0051,
+    "dnp_rate_10": 0.0043,
+    "team_rest_days": 0.004,
+    "team_win_pct_10": 0.0024,
+    "games_last_14d": 0.0012,
+    "back_to_back": 0.0003,
+    "prev_played": 0.0002,
+    "team_blowout_losses_5": -0.0002,
+    "team_avg_margin_5": -0.0006
+  },
+  "n_folds_evaluated": 6
+}

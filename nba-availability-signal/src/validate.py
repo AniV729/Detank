@@ -207,14 +207,13 @@ def _permutation_importance(df: pd.DataFrame, n_folds: int) -> pd.Series:
 if __name__ == "__main__":
     import argparse
 
-    from src.data import load_player_logs
+    from src.data import DEFAULT_SEASONS, load_player_logs
     from src.features import build_features
     from src.panel import build_panel
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     parser = argparse.ArgumentParser(description="Run walk-forward validation")
-    parser.add_argument("--seasons", nargs="+",
-                        default=["2021-22", "2022-23", "2023-24", "2024-25"])
+    parser.add_argument("--seasons", nargs="+", default=DEFAULT_SEASONS)
     args = parser.parse_args()
 
     raw = load_player_logs(args.seasons)

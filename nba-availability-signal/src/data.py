@@ -28,6 +28,13 @@ logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "raw"
 
+# The seasons the published results are built on (2010-11 through 2024-25).
+DEFAULT_SEASONS = [
+    "2010-11", "2011-12", "2012-13", "2013-14", "2014-15", "2015-16",
+    "2016-17", "2017-18", "2018-19", "2019-20", "2020-21", "2021-22",
+    "2022-23", "2023-24", "2024-25",
+]
+
 # Columns we keep from the raw LeagueGameLog player feed.
 _KEEP_COLS = [
     "SEASON_ID", "PLAYER_ID", "PLAYER_NAME", "TEAM_ID", "TEAM_ABBREVIATION",
@@ -107,8 +114,7 @@ def load_player_logs(seasons: list[str], refresh: bool = False) -> pd.DataFrame:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Cache NBA player game logs")
     parser.add_argument(
-        "--seasons", nargs="+",
-        default=["2021-22", "2022-23", "2023-24", "2024-25"],
+        "--seasons", nargs="+", default=DEFAULT_SEASONS,
         help="Seasons to pull, e.g. 2022-23 2023-24",
     )
     parser.add_argument("--refresh", action="store_true", help="Re-fetch even if cached")

@@ -142,12 +142,11 @@ def build_panel(raw: pd.DataFrame) -> pd.DataFrame:
 if __name__ == "__main__":
     import argparse
 
-    from src.data import load_player_logs
+    from src.data import DEFAULT_SEASONS, load_player_logs
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     parser = argparse.ArgumentParser(description="Build player-game panel")
-    parser.add_argument("--seasons", nargs="+",
-                        default=["2021-22", "2022-23", "2023-24", "2024-25"])
+    parser.add_argument("--seasons", nargs="+", default=DEFAULT_SEASONS)
     args = parser.parse_args()
 
     raw = load_player_logs(args.seasons)

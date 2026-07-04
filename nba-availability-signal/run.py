@@ -19,7 +19,7 @@ import json
 import logging
 from pathlib import Path
 
-from src.data import load_player_logs
+from src.data import DEFAULT_SEASONS, load_player_logs
 from src.features import build_features
 from src.panel import build_panel
 from src.plots import generate_all
@@ -31,9 +31,8 @@ RESULTS_DIR = Path(__file__).resolve().parent / "results"
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     parser = argparse.ArgumentParser(description="Run the full availability-signal pipeline")
-    parser.add_argument("--seasons", nargs="+",
-                        default=["2021-22", "2022-23", "2023-24", "2024-25"])
-    parser.add_argument("--folds", type=int, default=8)
+    parser.add_argument("--seasons", nargs="+", default=DEFAULT_SEASONS)
+    parser.add_argument("--folds", type=int, default=12)
     args = parser.parse_args()
 
     raw = load_player_logs(args.seasons)

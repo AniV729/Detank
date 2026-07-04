@@ -44,22 +44,36 @@ Everything is validated with **expanding-window walk-forward** splits (train on 
 
 ---
 
+## Data scope
+
+Fifteen NBA regular seasons, **2010-11 → 2024-25** (game dates Oct 2010 → Apr 2025). Regular season only — playoffs/preseason are excluded because their rotation logic is different and would contaminate the label.
+
+The unit of analysis is a **player-game observation** (one row per player per game), *not* a game. The counts cascade like this:
+
+| Level | Count | Meaning |
+|-------|------:|---------|
+| Unique games | ~17,900 | 1,230 games/season × 15 (adjusted for lockout/COVID-shortened years) |
+| Team-games | 35,776 | each game counted once per team |
+| Player-games (played) | 377,780 | box-score rows where the player appeared |
+| Player-games (+ inferred DNPs) | 503,683 | after adding rest/DNP rows within each player's tenure |
+| **Modeling rows** | **202,796** | rotation players (trailing-10 ≥ 20 min) with ≥ 5 games of history |
+
 ## Results
 
-Trained and validated on **54,478 rotation-player games** across four seasons (2021-22 → 2024-25), with an **11.3% event base rate**. All numbers below are **out-of-sample**, pooled across 6 expanding-window walk-forward folds — the model never sees the period it's scored on.
+Validated on **202,796 rotation-player-game observations**, with an **8.9% event base rate**. All numbers below are **out-of-sample**, pooled across 10 expanding-window walk-forward folds spanning **2013 → 2025** — the model never sees the period it's scored on.
 
 | Model | ROC-AUC | PR-AUC | Brier | Lift @ top decile |
 |-------|:------:|:------:|:-----:|:-----------------:|
-| Base rate (reference) | 0.494 | 0.109 | 0.098 | 0.94x |
-| Recent-DNP heuristic | 0.644 | 0.174 | 0.099 | 2.14x |
-| Logistic regression | 0.729 | 0.347 | **0.180** | 4.16x |
-| **Gradient Boosting** | **0.730** | **0.375** | **0.082** | **4.16x** |
+| Base rate (reference) | 0.547 | 0.104 | 0.083 | 1.25x |
+| Recent-DNP heuristic | 0.653 | 0.158 | 0.083 | 2.53x |
+| Logistic regression | 0.744 | 0.362 | **0.176** | 4.45x |
+| **Gradient Boosting** | **0.752** | **0.390** | **0.068** | **4.49x** |
 
-**What the headline number means:** of the 10% of players the model flags as highest-risk on a given slate, **~47% actually sit or get their minutes cut** — a **4.2x lift** over the 11.3% base rate. The gradient-booster also nearly halves the Brier score vs. the logistic baseline, so its probabilities are usable as-is (no post-hoc calibration needed).
+**What the headline number means:** of the 10% of players the model flags as highest-risk on a given slate, **~40% actually sit or get their minutes cut** — a **4.5x lift** over the 8.9% base rate. The gradient-booster also cuts the Brier score by ~60% vs. the logistic baseline, so its probabilities are usable as-is (no post-hoc calibration needed).
 
-**Stability:** performance is consistent across every fold from late-2022 to 2025 (ROC 0.706–0.756), not driven by one lucky period.
+**Stability:** performance is consistent across every fold from 2013 to 2025 (ROC **0.739–0.763**), spanning the pre- and post-"load-management" eras — not driven by one lucky period or regime.
 
-**Honesty note:** ROC ~0.73 on an inferred, noisy label is a *realistic* number, not a suspiciously clean one. Roughly one-fifth of a player's minutes drop is genuinely unpredictable from schedule/role/form alone — which is exactly why official injury reports (roadmap) would be the next lift.
+**Honesty note:** ROC ~0.75 on an inferred, noisy label is a *realistic* number, not a suspiciously clean one. A meaningful share of a player's minutes drop is genuinely unpredictable from schedule/role/form alone — which is exactly why official injury reports (roadmap) would be the next lift.
 
 ### Figures
 
@@ -70,11 +84,11 @@ Trained and validated on **54,478 rotation-player games** across four seasons (2
 
 ![Feature importance](results/importance.png)
 
-Feature importance (permutation, out-of-sample) is led by the player's recent minutes and minutes **volatility** — i.e., inconsistent-usage players are the most predictable rest candidates — followed by season progression (rest ramps up late-season, consistent with load management and tanking).
+Feature importance (permutation, out-of-sample) is led by the player's **most-recent-game minutes** and recent minutes level, then **season progression** (`team_game_num` — rest ramps up late-season, consistent with load management and tanking) and minutes **volatility** (inconsistent-usage players are the most predictable rest candidates), then team rest days / back-to-backs.
 
 ### Resume bullet (real numbers)
 
-> Built an end-to-end NBA player-availability model on 54K+ rotation-player games, engineering strictly causal features from reconstructed box-score panels (recovering inferred DNPs) and validating with expanding-window walk-forward testing; the gradient-boosted classifier reached **0.73 ROC-AUC / 0.375 PR-AUC** out-of-sample with a **4.2x top-decile lift** over base rate and a well-calibrated 0.082 Brier score, beating naive and logistic baselines consistently across all folds.
+> Built an end-to-end NBA player-availability model on 200K+ rotation-player-game observations spanning 15 seasons (2010-11–2024-25), engineering strictly causal features from reconstructed box-score panels (recovering inferred DNPs) and validating with expanding-window walk-forward testing; the gradient-boosted classifier reached **0.75 ROC-AUC / 0.39 PR-AUC** out-of-sample with a **4.5x top-decile lift** over base rate and a well-calibrated 0.068 Brier score, beating naive and logistic baselines consistently across all 10 folds (ROC 0.74–0.76, 2013–2025).
 
 ---
 
@@ -83,11 +97,13 @@ Feature importance (permutation, out-of-sample) is led by the player's recent mi
 ```bash
 pip install -r requirements.txt
 
-# 1. Pull + cache raw season logs (few API calls)
-python -m src.data --seasons 2021-22 2022-23 2023-24 2024-25
+# 1. Pull + cache raw season logs (defaults to all 15 seasons, one API call each)
+python -m src.data
 
 # 2. Run the full pipeline: panel -> features -> walk-forward -> metrics + plots
 python run.py
+
+# (both default to 2010-11 .. 2024-25; pass --seasons to override)
 ```
 
 Outputs land in `results/` (metrics JSON + PNG plots).

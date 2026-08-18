@@ -12,3 +12,6 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local-only interview prep notes (kept off GitHub)
+PROJECT_EXPLAINED.md
